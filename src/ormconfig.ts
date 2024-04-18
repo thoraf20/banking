@@ -1,19 +1,21 @@
-import { DataSourceOptions } from "typeorm";
+import { DataSource } from "typeorm";
+import dotenv from "dotenv";
+import { Customer } from "./customers/customer.entity";
 
-const config: DataSourceOptions = {
+dotenv.config();
+
+const dbConfig = new DataSource({
   type: "postgres",
   host: process.env.POSTGRES_HOST,
   port: Number(process.env.POSTGRES_PORT),
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
-  entities: [__dirname + "/../**/*.entity{.ts,.js}"],
-  migrations: [],
-  migrationsRun: true,
-  logging: true,
-  // cli: {
-  //   migrationsDir: "src/migrations",
-  // },
-};
+  entities: [Customer],
+  migrations: ["dist/migrations/*{.ts,.js}"],
+  migrationsTableName: "banking_migrations",
+  synchronize: false,
+  logging: ["error"],
+});
 
-export = config;
+export = dbConfig;

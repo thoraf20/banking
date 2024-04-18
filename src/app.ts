@@ -5,6 +5,7 @@ import cors from 'cors'
 import Controller from "./interfaces/controller.interface";
 import { errorMiddleware, requestLogger } from "./middlewares/index";
 import logger from "./lib/logger";
+import { authMiddleware, checkJwt, routesExcludedFromJwtAuthentication, unless } from "./middlewares/auth.middleware";
 
 class App {
   private app: express.Application;
@@ -34,6 +35,10 @@ class App {
     this.app.use(bodyParser.json());
     this.app.use(cookieParser());
     this.app.use(requestLogger);
+    this.app.use(
+      unless(routesExcludedFromJwtAuthentication, checkJwt),
+      // authMiddleware
+    );
   }
 
   private initializeErrorHandling() {

@@ -4,15 +4,23 @@
   "description": "an simple banking API to store and retrieve customer banking information",
   "main": "src/server.ts",
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "tsc",
     "start": "node ./dist/src/server.js",
     "dev": "nodemon ./src/server.ts",
     "lint": "tslint -p tsconfig.json -c tslint.json",
+    "test": "jest",
     "typeorm:cli": "ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
-    "test": "jest"
+    "typeorm": "typeorm-ts-node-commonjs -d ./src/ormconfig.ts",
+    "migration:create": "npx typeorm-ts-node-commonjs migration:create",
+    "migration:generate": "npm run build && npx typeorm-ts-node-commonjs migration:generate -d dist/ormconfig.js",
+    "migration:migrate": "npm run build && typeorm-ts-node-commonjs -d dist/ormconfig.js migration:run",
+    "migration:revert": "npm run build && typeorm-ts-node-commonjs migration:revert -d dist/ormconfig.js",
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d dist/ormconfig.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -21,7 +29,9 @@
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "express": "^4.19.2",
+    "express-jwt": "^8.4.1",
     "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.5",
     "reflect-metadata": "^0.2.2",
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
@@ -30,6 +40,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
