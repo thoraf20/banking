@@ -114,3 +114,35 @@ export class VerifyPinDto {
   @Length(4)
   pin: string;
 }
+
+export class UpdatePinDto {
+  @IsString()
+  @IsNotEmpty()
+  @Length(4)
+  currentPin: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(4)
+  newPin: string;
+}
+
+export class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  currentPassword: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[\W_]).+$/, {
+    message:
+      "Password must contain at least 8 characters, 1 upper case, 1 lower case and 1 special character",
+  })
+  newPassword: string;
+}
+
+export class UpdatePictureDto {
+  @IsString()
+  @IsNotEmpty()
+  imageString: string;
+}

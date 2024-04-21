@@ -1,7 +1,7 @@
 import dbConfig from "../ormconfig";
 import { Customer } from "./customer.entity";
 import HttpException from "../exceptions/HttpExceptions";
-import { SetPinDto, VerifyPinDto, updatePasswordDto } from "./customer.dto";
+import { ChangePasswordDto, SetPinDto, UpdatePictureDto, UpdatePinDto, VerifyPinDto, updatePasswordDto } from "./customer.dto";
 import * as bcrypt from "bcryptjs";
 
 class CustomerService {
@@ -85,15 +85,12 @@ class CustomerService {
     return "pin verify successfully";
   }
 
-  public async changePassword(
-    id: string,
-    currentPassword: string,
-    newPassword: string
-  ) {
+  public async changePassword(id: string, dto: ChangePasswordDto) {
+    const { currentPassword, newPassword } = dto;
     const dbCustomer = await this.findById(id);
 
     if (!dbCustomer) {
-      throw new HttpException(404, "customer not found")
+      throw new HttpException(404, "customer not found");
     }
 
     const isCorrectPin = dbCustomer.validatePassword(currentPassword);
@@ -106,10 +103,11 @@ class CustomerService {
 
     await this.updateAccount(dbCustomer.id, { password: hashPin });
 
-    return "password successfully changed"
+    return "password successfully changed";
   }
 
-  public async updatePin(id: string, currentPin: string, newPin: string) {
+  public async updatePin(id: string, dto: UpdatePinDto) {
+    const { currentPin, newPin } = dto;
     const dbCustomer = await this.findById(id);
 
     if (!dbCustomer) {
@@ -127,19 +125,18 @@ class CustomerService {
     await this.updateAccount(dbCustomer.id, { pin: hash });
 
     return "pin successfully updated";
-
   }
 
-  public async updateProfilePicture(userId: string, imageString: string) {
+  public async updateProfilePicture(userId: string, dto: UpdatePictureDto) {
     const dbCustomer = await this.findById(userId);
 
     if (!dbCustomer) {
       throw new HttpException(404, "customer not found");
     }
 
-    await this.updateAccount( userId, { profilePicture: imageString });
+    await this.updateAccount(userId, { profilePicture: dto.imageString });
 
-    return "profile picture updated successfully"; 
+    return "profile picture updated successfully";
   }
 }
 
