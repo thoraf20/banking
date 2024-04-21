@@ -1,5 +1,5 @@
 import CustomerService from "../customers/customer.service";
-import { LoginDto, SignUpDto, VerifyAccountDto } from "../customers/customer.dto";
+import { LoginDto, SignUpDto, VerifyAccountDto, VerifyPinDto, forgotPasswordDto, updatePasswordDto } from "../customers/customer.dto";
 import { Customer } from "../customers/customer.entity";
 import UserWithThatEmailAlreadyExistsException from "../exceptions/UserWithEmailExist";
 import dbConfig from "../ormconfig";
@@ -8,22 +8,24 @@ import jwt, { JwtPayload } from 'jsonwebtoken'
 import HttpException from "../exceptions/HttpExceptions";
 
 class AuthService {
-  private userRepository = dbConfig.getRepository(Customer);
+  private customerRepository = dbConfig.getRepository(Customer);
   private customerService = new CustomerService();
 
   public async signup(dto: SignUpDto) {
-    const customer = await this.userRepository.findOne({ where: { email: dto.email}})
+    const customer = await this.customerRepository.findOne({
+      where: { email: dto.email },
+    });
     if (customer) {
       throw new UserWithThatEmailAlreadyExistsException(dto.email);
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const user = this.userRepository.create({
+    const user = this.customerRepository.create({
       ...dto,
       password: passwordHash,
     });
 
-    await this.userRepository.save(user);
+    await this.customerRepository.save(user);
 
     return `verify your email with ${1234}`;
   }
@@ -39,12 +41,12 @@ class AuthService {
     }
 
     if (email) {
-      await this.userRepository.update(
+      await this.customerRepository.update(
         { id: customer.id },
         { isEmailVerified: true }
       );
     } else {
-      await this.userRepository.update(
+      await this.customerRepository.update(
         { id: customer.id },
         { isPhoneVerified: true }
       );
@@ -78,6 +80,33 @@ class AuthService {
       }),
     ]);
     return { access_token: accessToken, refresh_token: refreshToken };
+  }
+
+  public async forgotPassword(dto: forgotPasswordDto) {
+    const { email, phoneNumber } = dto;
+    const dbUser = dto.email
+      ? await this.customerService.findByEmail(email)
+      : await this.customerService.findByPhoneNumber(phoneNumber);
+
+    return `Verification code sent. Use 1234 as the code`;
+  }
+
+  public async updatePassword(dto: updatePasswordDto) {
+    const { email, newPassword } = dto;
+    const dbUser = await this.customerService.findByEmail(email);
+
+    if (!dbUser) {
+      throw new HttpException(404, "User does not exist");
+    }
+
+    if (dto.code === "1234") {
+      const hash = await bcrypt.hash(newPassword, 10);
+      await this.customerService.updateAccount(dbUser.id, { password: hash });
+
+      return "password set successfully";
+    } else {
+      throw new HttpException(400, "Invalid code");
+    }
   }
 
   async updateRefreshToken(userId: string, refreshToken: string) {
